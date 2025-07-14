@@ -13,6 +13,6 @@
     "declarationMap": true,          // 타입 정의 소스맵 생성 (디버깅용)
     "moduleResolution": "node"       // Node.js 스타일 모듈 해석
   },
-  "include": ["src/**/*"],           // 컴파일할 파일 경로
-  "exclude": ["node_modules", "dist"] // 컴파일에서 제외할 경로
+  "include": ["src/index.ts"],           // 컴파일할 파일 경로
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"] // 컴파일에서 제외할 경로
 }
