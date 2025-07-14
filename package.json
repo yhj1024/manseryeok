@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/saju-manseryeok"
+    "url": "https://github.com/yhj1024/manseryeok"
   },
   "scripts": {
     "build": "tsc",
