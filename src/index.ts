@@ -6,443 +6,117 @@
  * @license MIT
  */
 
-// ===== 상수 정의 =====
-
-/** 천간 (Heavenly Stems) */
-export const HEAVENLY_STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'] as const;
-
-/** 천간 한자 */
-export const HEAVENLY_STEMS_HANJA = [
-  '甲',
-  '乙',
-  '丙',
-  '丁',
-  '戊',
-  '己',
-  '庚',
-  '辛',
-  '壬',
-  '癸',
-] as const;
-
-/** 지지 (Earthly Branches) */
-export const EARTHLY_BRANCHES = [
-  '자',
-  '축',
-  '인',
-  '묘',
-  '진',
-  '사',
-  '오',
-  '미',
-  '신',
-  '유',
-  '술',
-  '해',
-] as const;
-
-/** 지지 한자 */
-export const EARTHLY_BRANCHES_HANJA = [
-  '子',
-  '丑',
-  '寅',
-  '卯',
-  '辰',
-  '巳',
-  '午',
-  '未',
-  '申',
-  '酉',
-  '戌',
-  '亥',
-] as const;
-
-/** 음양 (Yin/Yang) */
-export const YIN_YANG = ['양', '음'] as const;
-
-/** 오행 (Five Elements) */
-export const FIVE_ELEMENTS = ['목', '화', '토', '금', '수'] as const;
-
-// ===== 타입 정의 =====
-
-export type HeavenlyStem = (typeof HEAVENLY_STEMS)[number];
-export type EarthlyBranch = (typeof EARTHLY_BRANCHES)[number];
-export type YinYang = (typeof YIN_YANG)[number];
-export type FiveElement = (typeof FIVE_ELEMENTS)[number];
-
-/** 사주의 한 기둥을 나타내는 인터페이스 */
-export interface Pillar {
-  heavenlyStem: HeavenlyStem;
-  earthlyBranch: EarthlyBranch;
-}
-
-/** 사주팔자 전체를 나타내는 인터페이스 */
-export interface FourPillars {
-  year: Pillar; // 연주
-  month: Pillar; // 월주
-  day: Pillar; // 일주
-  hour: Pillar; // 시주
-}
-
-/** 생년월일시 정보 */
-export interface BirthInfo {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  isLunar?: boolean; // true면 음력, false/undefined면 양력
-  isLeapMonth?: boolean; // 음력 윤달 여부
-}
-
-/** 음력 날짜 정보 */
-export interface LunarDate {
-  year: number;
-  month: number;
-  day: number;
-  isLeapMonth: boolean;
-}
-
-/** 양력 날짜 정보 */
-export interface SolarDate {
-  year: number;
-  month: number;
-  day: number;
-}
-
-// ===== 음력 데이터 =====
-
-/** 1900-2100년 음력 데이터 (출처: 한국천문연구원) */
-const LUNAR_DATA = [
-  0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2, 0x04ae0,
-  0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977, 0x04970, 0x0a4b0,
-  0x0b4b5, 0x06a50, 0x06d40, 0x1ab54, 0x02b60, 0x09570, 0x052f2, 0x04970, 0x06566, 0x0d4a0, 0x0ea50,
-  0x06e95, 0x05ad0, 0x02b60, 0x186e3, 0x092e0, 0x1c8d7, 0x0c950, 0x0d4a0, 0x1d8a6, 0x0b550, 0x056a0,
-  0x1a5b4, 0x025d0, 0x092d0, 0x0d2b2, 0x0a950, 0x0b557, 0x06ca0, 0x0b550, 0x15355, 0x04da0, 0x0a5b0,
-  0x14573, 0x052b0, 0x0a9a8, 0x0e950, 0x06aa0, 0x0aea6, 0x0ab50, 0x04b60, 0x0aae4, 0x0a570, 0x05260,
-  0x0f263, 0x0d950, 0x05b57, 0x056a0, 0x096d0, 0x04dd5, 0x04ad0, 0x0a4d0, 0x0d4d4, 0x0d250, 0x0d558,
-  0x0b540, 0x0b6a0, 0x195a6, 0x095b0, 0x049b0, 0x0a974, 0x0a4b0, 0x0b27a, 0x06a50, 0x06d40, 0x0af46,
-  0x0ab60, 0x09570, 0x04af5, 0x04970, 0x064b0, 0x074a3, 0x0ea50, 0x06b58, 0x055c0, 0x0ab60, 0x096d5,
-  0x092e0, 0x0c960, 0x0d954, 0x0d4a0, 0x0da50, 0x07552, 0x056a0, 0x0abb7, 0x025d0, 0x092d0, 0x0cab5,
-  0x0a950, 0x0b4a0, 0x0baa4, 0x0ad50, 0x055d9, 0x04ba0, 0x0a5b0, 0x15176, 0x052b0, 0x0a930, 0x07954,
-  0x06aa0, 0x0ad50, 0x05b52, 0x04b60, 0x0a6e6, 0x0a4e0, 0x0d260, 0x0ea65, 0x0d530, 0x05aa0, 0x076a3,
-  0x096d0, 0x04afb, 0x04ad0, 0x0a4d0, 0x1d0b6, 0x0d250, 0x0d520, 0x0dd45, 0x0b5a0, 0x056d0, 0x055b2,
-  0x049b0, 0x0a577, 0x0a4b0, 0x0aa50, 0x1b255, 0x06d20, 0x0ada0, 0x14b63, 0x09370, 0x049f8, 0x04970,
-  0x064b0, 0x168a6, 0x0ea50, 0x06b20, 0x1a6c4, 0x0aae0, 0x0a2e0, 0x0d2e3, 0x0c960, 0x0d557, 0x0d4a0,
-  0x0da50, 0x05d55, 0x056a0, 0x0a6d0, 0x055d4, 0x052d0, 0x0a9b8, 0x0a950, 0x0b4a0, 0x0b6a6, 0x0ad50,
-  0x055a0, 0x0aba4, 0x0a5b0, 0x052b0, 0x0b273, 0x06930, 0x07337, 0x06aa0, 0x0ad50, 0x14b55, 0x04b60,
-  0x0a570, 0x054e4, 0x0d160, 0x0e968, 0x0d520, 0x0daa0, 0x16aa6, 0x056d0, 0x04ae0, 0x0a9d4, 0x0a2d0,
-  0x0d150, 0x0f252, 0x0d520,
-];
-
-// ===== 음력 계산 관련 함수 =====
-
-/** 음력 연도의 총 일수를 계산 */
-const getLunarYearDays = (year: number): number => {
-  let sum = 348; // 평년 기본 일수 (29.5 * 12 ≈ 354일에서 6일을 뺀 값)
-
-  // 각 월의 대소월 여부를 비트 연산으로 확인
-  for (let i = 0x8000; i > 0x8; i >>= 1) {
-    sum += LUNAR_DATA[year - 1900] & i ? 1 : 0;
-  }
-
-  return sum + getLeapMonthDays(year);
-};
-
-/** 음력 연도의 윤달 위치를 반환 (0이면 윤달 없음) */
-const getLeapMonth = (year: number): number => LUNAR_DATA[year - 1900] & 0xf;
-
-/** 음력 연도의 윤달 일수를 반환 */
-const getLeapMonthDays = (year: number): number => {
-  const leapMonth = getLeapMonth(year);
-  if (leapMonth) {
-    return LUNAR_DATA[year - 1900] & 0x10000 ? 30 : 29;
-  }
-  return 0;
-};
-
-/** 음력 특정 월의 일수를 반환 */
-const getLunarMonthDays = (year: number, month: number): number =>
-  LUNAR_DATA[year - 1900] & (0x10000 >> month) ? 30 : 29;
-
-// ===== 음력/양력 변환 함수 =====
-
-/**
- * 음력을 양력으로 변환
- */
-export function lunarToSolar(
-  year: number,
-  month: number,
-  day: number,
-  isLeapMonth: boolean,
-): SolarDate {
-  const baseDate = new Date(1900, 0, 31);
-  let offset = 0;
-
-  // 1900년부터 해당 연도까지의 일수 계산
-  for (let i = 1900; i < year; i++) {
-    offset += getLunarYearDays(i);
-  }
-
-  // 해당 연도의 월까지의 일수 계산
-  const leapMonth = getLeapMonth(year);
-  let isLeap = false;
-
-  for (let i = 1; i < month; i++) {
-    if (leapMonth > 0 && i === leapMonth && !isLeap) {
-      offset += getLeapMonthDays(year);
-      isLeap = true;
-      i--;
-    } else {
-      offset += getLunarMonthDays(year, i);
-    }
-  }
-
-  // 윤달인 경우 처리
-  if (isLeapMonth && leapMonth === month) {
-    offset += getLunarMonthDays(year, month);
-  }
-
-  // 일수 더하기
-  offset += day - 1;
-
-  const solarDate = new Date(baseDate.getTime() + offset * 86400000);
-  return {
-    year: solarDate.getFullYear(),
-    month: solarDate.getMonth() + 1,
-    day: solarDate.getDate(),
-  };
-}
-
-/**
- * 양력을 음력으로 변환
- */
-export function solarToLunar(year: number, month: number, day: number): LunarDate {
-  const baseDate = new Date(1900, 0, 31);
-  const targetDate = new Date(year, month - 1, day);
-  const offset = Math.floor((targetDate.getTime() - baseDate.getTime()) / 86400000);
-
-  let lunarYear = 1900;
-  let remainingDays = offset;
-
-  // 음력 연도 계산
-  for (let i = 1900; i < 2100 && remainingDays > 0; i++) {
-    const yearDays = getLunarYearDays(i);
-    if (remainingDays < yearDays) {
-      lunarYear = i;
-      break;
-    }
-    remainingDays -= yearDays;
-  }
-
-  // 음력 월 계산
-  const leapMonth = getLeapMonth(lunarYear);
-  let lunarMonth = 1;
-  let isLeapMonth = false;
-
-  for (let i = 1; i <= 12 && remainingDays > 0; i++) {
-    let monthDays: number;
-
-    if (leapMonth > 0 && i === leapMonth + 1 && !isLeapMonth) {
-      monthDays = getLeapMonthDays(lunarYear);
-      isLeapMonth = true;
-      i--;
-    } else {
-      monthDays = getLunarMonthDays(lunarYear, i);
-      isLeapMonth = false;
-    }
-
-    if (remainingDays < monthDays) {
-      lunarMonth = i;
-      break;
-    }
-    remainingDays -= monthDays;
-  }
-
-  const lunarDay = remainingDays + 1;
-
-  return { year: lunarYear, month: lunarMonth, day: lunarDay, isLeapMonth };
-}
-
-// ===== 절기 계산 =====
-
-/** 절기 계산을 위한 기본 데이터 */
-const SOLAR_TERM_BASE = [
-  5.4055, 20.12, 3.87, 18.73, 5.63, 20.646, 4.81, 20.1, 5.52, 21.04, 5.678, 21.37, 7.108, 22.83,
-  7.5, 23.13, 7.646, 23.042, 8.318, 23.438, 7.438, 22.36, 7.18, 21.94,
-];
-
-/**
- * 특정 절기의 날짜를 계산
- * @param year 연도
- * @param termIndex 절기 인덱스 (0-23)
- */
-const getSolarTermDate = (year: number, termIndex: number): Date => {
-  const century = Math.floor(year / 100);
-  const yearInCentury = year % 100;
-
-  const termCoeff = 0.2422;
-  const leapYearAdjust = Math.floor(yearInCentury / 4) - Math.floor(century / 4);
-
-  const day = Math.floor(SOLAR_TERM_BASE[termIndex] + termCoeff * yearInCentury + leapYearAdjust);
-
-  const month = Math.floor(termIndex / 2);
-
-  return new Date(year, month, day);
-};
-
-// ===== 사주 계산 함수들 =====
-
-/**
- * 연주 계산
- */
-const getYearPillar = (year: number): Pillar => ({
-  heavenlyStem: HEAVENLY_STEMS[(year - 4) % 10],
-  earthlyBranch: EARTHLY_BRANCHES[(year - 4) % 12],
-});
-
-/**
- * 월주 계산 (절기 기준)
- */
-const getMonthPillar = (year: number, month: number, day: number): Pillar => {
-  const date = new Date(year, month - 1, day);
-
-  // 입춘 기준으로 연도 조정
-  const lichunDate = getSolarTermDate(year, 2); // 입춘은 3번째 절기 (0-indexed)
-  let adjustedYear = year;
-  if (date < lichunDate) {
-    adjustedYear = year - 1;
-  }
-
-  // 절기 기준으로 월 계산
-  let solarTermMonth = 0;
-  for (let i = 0; i < 24; i += 2) {
-    const termDate = getSolarTermDate(adjustedYear, i);
-    if (date >= termDate) {
-      solarTermMonth = Math.floor(i / 2) + 1;
-    } else {
-      break;
-    }
-  }
-
-  // 월주 천간 계산 (오행 순환 공식)
-  const yearStem = (adjustedYear - 4) % 10;
-  const yearStemMod5 = yearStem % 5;
-  const monthStemIndex = (yearStemMod5 * 2 + solarTermMonth + 1) % 10;
-
-  // 월주 지지 맵핑
-  const MONTH_BRANCHES: Record<number, EarthlyBranch> = {
-    1: '인',
-    2: '묘',
-    3: '진',
-    4: '사',
-    5: '오',
-    6: '미',
-    7: '신',
-    8: '유',
-    9: '술',
-    10: '해',
-    11: '자',
-    12: '축',
-  };
-
-  return {
-    heavenlyStem: HEAVENLY_STEMS[monthStemIndex],
-    earthlyBranch: MONTH_BRANCHES[solarTermMonth] || '인',
-  };
-};
-
-/**
- * 일주 계산 (60갑자 순환)
- */
-const getDayPillar = (year: number, month: number, day: number): Pillar => {
-  // 기준일: 1992년 10월 24일 = 계유일 (60갑자 9번)
-  const BASE_DATE = new Date(1992, 9, 24);
-  const BASE_GANJI_NUM = 9;
-
-  const targetDate = new Date(year, month - 1, day);
-  const daysDiff = Math.floor((targetDate.getTime() - BASE_DATE.getTime()) / 86400000);
-
-  // 60갑자 순환 계산
-  const targetGanjiNum = (((BASE_GANJI_NUM + daysDiff) % 60) + 60) % 60;
-
-  return {
-    heavenlyStem: HEAVENLY_STEMS[targetGanjiNum % 10],
-    earthlyBranch: EARTHLY_BRANCHES[targetGanjiNum % 12],
-  };
-};
-
-/**
- * 시주 계산
- *
- * 시간 체계:
- * - 자시(子時): 23:00-01:00
- * - 축시(丑時): 01:00-03:00
- * - 인시(寅時): 03:00-05:00
- * - 묘시(卯時): 05:00-07:00
- * - 진시(辰時): 07:00-09:00
- * - 사시(巳時): 09:00-11:00
- * - 오시(午時): 11:00-13:00
- * - 미시(未時): 13:00-15:00
- * - 신시(申時): 15:00-17:00
- * - 유시(酉時): 17:00-19:00
- * - 술시(戌時): 19:00-21:00
- * - 해시(亥時): 21:00-23:00
- *
- * 분(minute) 처리:
- * - 30분 이전: 해당 시진의 초반
- * - 30분 이후: 다음 시진으로 넘어가는 경계
- * - 예: 5시 30분은 묘시의 중반으로 처리
- */
-const getHourPillar = (dayPillar: Pillar, hour: number, minute: number): Pillar => {
-  // 시간을 12지지 시간으로 변환 (분 고려)
-  let adjustedHour = hour;
-
-  // 23시는 자시로 처리
-  if (hour === 23) {
-    adjustedHour = 0;
-  }
-
-  // 정확한 시진 계산 (분을 고려하여 보정)
-  // 각 시진은 2시간이므로, 중간점인 정각 이후 1시간이 지나면 다음 시진에 가까워짐
-  const totalMinutes = adjustedHour * 60 + minute;
-  const shichen = Math.floor((totalMinutes + 60) / 120) % 12;
-
-  // 일간에 따른 시간 천간 계산 (일간 기준 오행 순환)
-  const dayStemIndex = HEAVENLY_STEMS.indexOf(dayPillar.heavenlyStem);
-  const hourStemBase = (dayStemIndex % 5) * 2;
-  const hourStemIndex = (hourStemBase + shichen) % 10;
-
-  return {
-    heavenlyStem: HEAVENLY_STEMS[hourStemIndex],
-    earthlyBranch: EARTHLY_BRANCHES[shichen],
-  };
-};
-
-// ===== 메인 계산 함수 =====
+import type {
+  BirthInfo,
+  EarthlyBranch,
+  ElementPair,
+  FourPillars,
+  LuckPillarInfo,
+  Pillar,
+  YinYangPair,
+} from './types';
+import {
+  EARTHLY_BRANCHES,
+  EARTHLY_BRANCHES_HANJA,
+  HEAVENLY_STEMS,
+  HEAVENLY_STEMS_HANJA,
+} from './constants';
+import {
+  getEarthlyBranchElement,
+  getEarthlyBranchYinYang,
+  getHeavenlyStemElement,
+  getHeavenlyStemYinYang,
+} from './elements';
+import { isValidSolarDate, lunarToSolar } from './calendar/convert';
+import { LUNAR_MAX_YEAR } from './calendar/lunar-data';
+import { SOLAR_TERM_DATA_MAX_YEAR, SOLAR_TERM_DATA_MIN_YEAR } from './astro/solar-terms-data';
+import { resolveInstant } from './time/true-solar-time';
+import { computeFourPillars } from './pillars';
+import { getTenGodChart, type TenGodChart } from './features/ten-gods';
+import { getVoidBranches } from './features/void-branches';
+import { getLuckPillars } from './features/luck-pillars';
+import {
+  assertBoolean,
+  assertDayBoundary,
+  assertFiniteNumber,
+  assertGender,
+  assertOptionalBoolean,
+  assertPillar,
+} from './validation';
+
+// ===== 공개 re-export =====
+
+export {
+  HEAVENLY_STEMS,
+  HEAVENLY_STEMS_HANJA,
+  EARTHLY_BRANCHES,
+  EARTHLY_BRANCHES_HANJA,
+  YIN_YANG,
+  FIVE_ELEMENTS,
+  TEN_GOD_HANJA,
+} from './constants';
+
+export type {
+  HeavenlyStem,
+  EarthlyBranch,
+  YinYang,
+  FiveElement,
+  TenGod,
+  Gender,
+  DayBoundary,
+  Pillar,
+  FourPillars,
+  BirthInfo,
+  TrueSolarTimeOptions,
+  LunarDate,
+  SolarDate,
+  ElementPair,
+  YinYangPair,
+  LuckPillar,
+  LuckPillarInfo,
+  SolarTerm,
+} from './types';
+
+export {
+  getHeavenlyStemYinYang,
+  getHeavenlyStemElement,
+  getEarthlyBranchYinYang,
+  getEarthlyBranchElement,
+} from './elements';
+
+export { lunarToSolar, solarToLunar, isValidSolarDate } from './calendar/convert';
+export { LUNAR_MIN_YEAR, LUNAR_MAX_YEAR } from './calendar/lunar-data';
+
+export {
+  getSolarTerm,
+  getSolarTermsOfYear,
+  SOLAR_TERM_NAMES,
+  SOLAR_TERM_NAMES_HANJA,
+} from './astro/solar-terms';
+export { apparentSolarLongitude, equationOfTimeMinutes } from './astro/sun-longitude';
+
+export { getTenGod, getBranchTenGod, getTenGodChart } from './features/ten-gods';
+export type { TenGodChart } from './features/ten-gods';
+export { getVoidBranches } from './features/void-branches';
+export { getLuckPillars } from './features/luck-pillars';
+export type { LuckPillarParams } from './features/luck-pillars';
+export { DEFAULT_LONGITUDE } from './time/true-solar-time';
+
+// ===== 사주 계산 결과 타입 =====
 
 /** 사주 계산 결과 상세 정보 */
 export interface FourPillarsDetail extends FourPillars {
-  // 각 기둥의 음양오행 (stem: 천간의 오행, branch: 지지의 오행)
-  yearElement: { stem: FiveElement; branch: FiveElement };
-  monthElement: { stem: FiveElement; branch: FiveElement };
-  dayElement: { stem: FiveElement; branch: FiveElement };
-  hourElement: { stem: FiveElement; branch: FiveElement };
+  // 각 기둥의 오행 (stem: 천간 오행, branch: 지지 오행)
+  yearElement: ElementPair;
+  monthElement: ElementPair;
+  dayElement: ElementPair;
+  hourElement: ElementPair;
 
-  // 각 기둥의 음양 (stem: 천간의 음양, branch: 지지의 음양)
-  yearYinYang: { stem: YinYang; branch: YinYang };
-  monthYinYang: { stem: YinYang; branch: YinYang };
-  dayYinYang: { stem: YinYang; branch: YinYang };
-  hourYinYang: { stem: YinYang; branch: YinYang };
-
-  // 문자열 표현
-  toString: () => string;
-  toObject: () => {
-    year: string;
-    month: string;
-    day: string;
-    hour: string;
-  };
+  // 각 기둥의 음양
+  yearYinYang: YinYangPair;
+  monthYinYang: YinYangPair;
+  dayYinYang: YinYangPair;
+  hourYinYang: YinYangPair;
 
   // 개별 기둥 문자열 (한글)
   yearString: string;
@@ -456,124 +130,213 @@ export interface FourPillarsDetail extends FourPillars {
   dayHanja: string;
   hourHanja: string;
 
-  // 한자 포함 객체
+  // ===== 부가 명리 정보 =====
+  /** 십신(十神) 차트 */
+  tenGods: TenGodChart;
+  /** 공망(空亡) 지지 */
+  voidBranches: EarthlyBranch[];
+  /** 대운(大運) — gender 가 주어진 경우에만 제공 */
+  luckPillars?: LuckPillarInfo;
+
+  // 문자열/객체 변환
+  toString: () => string;
+  toObject: () => { year: string; month: string; day: string; hour: string };
   toHanjaObject: () => {
     year: { korean: string; hanja: string };
     month: { korean: string; hanja: string };
     day: { korean: string; hanja: string };
     hour: { korean: string; hanja: string };
   };
-
-  // 한자 문자열
   toHanjaString: () => string;
+}
+
+// ===== 입력 검증 =====
+
+function validateBirthInfo(birthInfo: BirthInfo): void {
+  if (birthInfo === null || typeof birthInfo !== 'object') {
+    throw new TypeError('생년월일시 정보(birthInfo)는 객체여야 합니다.');
+  }
+
+  const { year, month, day, hour, minute } = birthInfo;
+
+  if (birthInfo.isLunar !== undefined) {
+    assertBoolean(birthInfo.isLunar, '음력 여부(isLunar)');
+  }
+  if (birthInfo.isLeapMonth !== undefined) {
+    assertBoolean(birthInfo.isLeapMonth, '윤달 여부(isLeapMonth)');
+  }
+  if (birthInfo.dayBoundary !== undefined) {
+    assertDayBoundary(birthInfo.dayBoundary);
+  }
+  if (birthInfo.gender !== undefined) {
+    assertGender(birthInfo.gender);
+  }
+  if (birthInfo.trueSolarTime !== undefined) {
+    const { trueSolarTime } = birthInfo;
+    if (trueSolarTime === null || typeof trueSolarTime !== 'object' || Array.isArray(trueSolarTime)) {
+      throw new TypeError('진태양시 옵션(trueSolarTime)은 객체여야 합니다.');
+    }
+    if (trueSolarTime.longitude !== undefined) {
+      assertFiniteNumber(trueSolarTime.longitude, '출생지 경도(trueSolarTime.longitude)');
+      if (trueSolarTime.longitude < -180 || trueSolarTime.longitude > 180) {
+        throw new RangeError(
+          `출생지 경도(trueSolarTime.longitude)는 -180~180 범위여야 합니다: ${trueSolarTime.longitude}`,
+        );
+      }
+    }
+    assertOptionalBoolean(
+      trueSolarTime.applyEquationOfTime,
+      '균시차 보정 여부(trueSolarTime.applyEquationOfTime)',
+    );
+    assertOptionalBoolean(
+      trueSolarTime.applyHistoricalDst,
+      '과거 표준시·서머타임 보정 여부(trueSolarTime.applyHistoricalDst)',
+    );
+  }
+
+  // 사주 계산은 정밀 절입표 범위(1800~) 안에서만 분 단위로 정확하므로 음력 입력도 1800년부터
+  // 허용한다. 음력 상한은 음력 테이블(~2100), 양력은 절입표(~2300) 범위를 따른다.
+  // (음양력 변환 API 자체는 1391년부터 지원한다.)
+  const minYear = SOLAR_TERM_DATA_MIN_YEAR;
+  const maxYear = birthInfo.isLunar ? LUNAR_MAX_YEAR : SOLAR_TERM_DATA_MAX_YEAR;
+  if (!Number.isInteger(year) || year < minYear || year > maxYear) {
+    throw new RangeError(`연도(year)는 ${minYear}~${maxYear} 정수여야 합니다: ${year}`);
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    throw new RangeError(`시(hour)는 0~23 정수여야 합니다: ${hour}`);
+  }
+  if (!Number.isInteger(minute) || minute < 0 || minute > 59) {
+    throw new RangeError(`분(minute)은 0~59 정수여야 합니다: ${minute}`);
+  }
+
+  if (birthInfo.isLunar) {
+    // 음력은 월 1~12, 일 1~30 기본 검사. 윤달·일수 세부 검증은 lunarToSolar 가 수행한다.
+    if (!Number.isInteger(month) || month < 1 || month > 12) {
+      throw new RangeError(`월(month)은 1~12 정수여야 합니다: ${month}`);
+    }
+    if (!Number.isInteger(day) || day < 1 || day > 30) {
+      throw new RangeError(`음력 일(day)은 1~30 정수여야 합니다: ${day}`);
+    }
+  } else if (!isValidSolarDate(year, month, day)) {
+    throw new RangeError(`유효하지 않은 양력 날짜입니다: ${year}-${month}-${day}`);
+  }
+}
+
+function hanjaOf(pillar: Pillar): string {
+  return (
+    HEAVENLY_STEMS_HANJA[HEAVENLY_STEMS.indexOf(pillar.heavenlyStem)] +
+    EARTHLY_BRANCHES_HANJA[EARTHLY_BRANCHES.indexOf(pillar.earthlyBranch)]
+  );
+}
+
+function elementOf(pillar: Pillar): ElementPair {
+  return {
+    stem: getHeavenlyStemElement(pillar.heavenlyStem),
+    branch: getEarthlyBranchElement(pillar.earthlyBranch),
+  };
+}
+
+function yinYangOf(pillar: Pillar): YinYangPair {
+  return {
+    stem: getHeavenlyStemYinYang(pillar.heavenlyStem),
+    branch: getEarthlyBranchYinYang(pillar.earthlyBranch),
+  };
 }
 
 /**
  * 사주팔자를 계산합니다.
  *
  * @param birthInfo 생년월일시 정보
- * @returns 사주팔자 (연주, 월주, 일주, 시주)
+ * @returns 사주팔자(연주·월주·일주·시주)와 부가 명리 정보
  */
 export function calculateFourPillars(birthInfo: BirthInfo): FourPillarsDetail {
+  validateBirthInfo(birthInfo);
+
   const { hour, minute } = birthInfo;
   let { year, month, day } = birthInfo;
 
-  // 음력인 경우 양력으로 변환
+  // 음력 입력 → 양력 변환
   if (birthInfo.isLunar) {
-    const solarDate = lunarToSolar(year, month, day, birthInfo.isLeapMonth || false);
-    year = solarDate.year;
-    month = solarDate.month;
-    day = solarDate.day;
+    const solar = lunarToSolar(year, month, day, birthInfo.isLeapMonth ?? false);
+    year = solar.year;
+    month = solar.month;
+    day = solar.day;
   }
 
-  const yearPillar = getYearPillar(year);
-  const monthPillar = getMonthPillar(year, month, day);
-  const dayPillar = getDayPillar(year, month, day);
-  const hourPillar = getHourPillar(dayPillar, hour, minute);
+  const resolved = resolveInstant(year, month, day, hour, minute, birthInfo.trueSolarTime);
+  const dayBoundary = birthInfo.dayBoundary ?? 'midnight';
+  const pillars = computeFourPillars(resolved, year, dayBoundary);
+
+  const fourPillars: FourPillars = {
+    year: pillars.year,
+    month: pillars.month,
+    day: pillars.day,
+    hour: pillars.hour,
+  };
+
+  // 부가 명리 정보
+  const tenGods = getTenGodChart(fourPillars);
+  const voidBranches = getVoidBranches(pillars.day.heavenlyStem, pillars.day.earthlyBranch);
+
+  let luckPillars: LuckPillarInfo | undefined;
+  if (birthInfo.gender) {
+    luckPillars = getLuckPillars({
+      instantUTCms: resolved.instantUTCms,
+      birthYear: year,
+      monthPillar: pillars.month,
+      sajuYearStemIndex: HEAVENLY_STEMS.indexOf(pillars.year.heavenlyStem),
+      gender: birthInfo.gender,
+    });
+  }
+
+  const yearString = `${pillars.year.heavenlyStem}${pillars.year.earthlyBranch}`;
+  const monthString = `${pillars.month.heavenlyStem}${pillars.month.earthlyBranch}`;
+  const dayString = `${pillars.day.heavenlyStem}${pillars.day.earthlyBranch}`;
+  const hourString = `${pillars.hour.heavenlyStem}${pillars.hour.earthlyBranch}`;
 
   return {
-    year: yearPillar,
-    month: monthPillar,
-    day: dayPillar,
-    hour: hourPillar,
+    ...fourPillars,
 
-    // 오행 정보
-    yearElement: {
-      stem: getHeavenlyStemElement(yearPillar.heavenlyStem),
-      branch: getEarthlyBranchElement(yearPillar.earthlyBranch),
-    },
-    monthElement: {
-      stem: getHeavenlyStemElement(monthPillar.heavenlyStem),
-      branch: getEarthlyBranchElement(monthPillar.earthlyBranch),
-    },
-    dayElement: {
-      stem: getHeavenlyStemElement(dayPillar.heavenlyStem),
-      branch: getEarthlyBranchElement(dayPillar.earthlyBranch),
-    },
-    hourElement: {
-      stem: getHeavenlyStemElement(hourPillar.heavenlyStem),
-      branch: getEarthlyBranchElement(hourPillar.earthlyBranch),
-    },
+    yearElement: elementOf(pillars.year),
+    monthElement: elementOf(pillars.month),
+    dayElement: elementOf(pillars.day),
+    hourElement: elementOf(pillars.hour),
 
-    // 음양 정보
-    yearYinYang: {
-      stem: getHeavenlyStemYinYang(yearPillar.heavenlyStem),
-      branch: getEarthlyBranchYinYang(yearPillar.earthlyBranch),
-    },
-    monthYinYang: {
-      stem: getHeavenlyStemYinYang(monthPillar.heavenlyStem),
-      branch: getEarthlyBranchYinYang(monthPillar.earthlyBranch),
-    },
-    dayYinYang: {
-      stem: getHeavenlyStemYinYang(dayPillar.heavenlyStem),
-      branch: getEarthlyBranchYinYang(dayPillar.earthlyBranch),
-    },
-    hourYinYang: {
-      stem: getHeavenlyStemYinYang(hourPillar.heavenlyStem),
-      branch: getEarthlyBranchYinYang(hourPillar.earthlyBranch),
-    },
+    yearYinYang: yinYangOf(pillars.year),
+    monthYinYang: yinYangOf(pillars.month),
+    dayYinYang: yinYangOf(pillars.day),
+    hourYinYang: yinYangOf(pillars.hour),
 
-    // 문자열 표현 (한글)
-    yearString: `${yearPillar.heavenlyStem}${yearPillar.earthlyBranch}`,
-    monthString: `${monthPillar.heavenlyStem}${monthPillar.earthlyBranch}`,
-    dayString: `${dayPillar.heavenlyStem}${dayPillar.earthlyBranch}`,
-    hourString: `${hourPillar.heavenlyStem}${hourPillar.earthlyBranch}`,
+    yearString,
+    monthString,
+    dayString,
+    hourString,
 
-    // 한자 표현
-    yearHanja: `${HEAVENLY_STEMS_HANJA[HEAVENLY_STEMS.indexOf(yearPillar.heavenlyStem)]}${EARTHLY_BRANCHES_HANJA[EARTHLY_BRANCHES.indexOf(yearPillar.earthlyBranch)]}`,
-    monthHanja: `${HEAVENLY_STEMS_HANJA[HEAVENLY_STEMS.indexOf(monthPillar.heavenlyStem)]}${EARTHLY_BRANCHES_HANJA[EARTHLY_BRANCHES.indexOf(monthPillar.earthlyBranch)]}`,
-    dayHanja: `${HEAVENLY_STEMS_HANJA[HEAVENLY_STEMS.indexOf(dayPillar.heavenlyStem)]}${EARTHLY_BRANCHES_HANJA[EARTHLY_BRANCHES.indexOf(dayPillar.earthlyBranch)]}`,
-    hourHanja: `${HEAVENLY_STEMS_HANJA[HEAVENLY_STEMS.indexOf(hourPillar.heavenlyStem)]}${EARTHLY_BRANCHES_HANJA[EARTHLY_BRANCHES.indexOf(hourPillar.earthlyBranch)]}`,
+    yearHanja: hanjaOf(pillars.year),
+    monthHanja: hanjaOf(pillars.month),
+    dayHanja: hanjaOf(pillars.day),
+    hourHanja: hanjaOf(pillars.hour),
 
-    toString: function (): string {
-      return `${this.yearString}년주, ${this.monthString}월주, ${this.dayString}일주, ${this.hourString}시주`;
+    tenGods,
+    voidBranches,
+    luckPillars,
+
+    toString(): string {
+      return `${yearString}년주, ${monthString}월주, ${dayString}일주, ${hourString}시주`;
     },
-
-    toObject: function (): { year: string; month: string; day: string; hour: string } {
+    toObject() {
+      return { year: yearString, month: monthString, day: dayString, hour: hourString };
+    },
+    toHanjaObject() {
       return {
-        year: this.yearString,
-        month: this.monthString,
-        day: this.dayString,
-        hour: this.hourString,
+        year: { korean: yearString, hanja: hanjaOf(pillars.year) },
+        month: { korean: monthString, hanja: hanjaOf(pillars.month) },
+        day: { korean: dayString, hanja: hanjaOf(pillars.day) },
+        hour: { korean: hourString, hanja: hanjaOf(pillars.hour) },
       };
     },
-
-    toHanjaObject: function (): {
-      year: { korean: string; hanja: string };
-      month: { korean: string; hanja: string };
-      day: { korean: string; hanja: string };
-      hour: { korean: string; hanja: string };
-    } {
-      return {
-        year: { korean: this.yearString, hanja: this.yearHanja },
-        month: { korean: this.monthString, hanja: this.monthHanja },
-        day: { korean: this.dayString, hanja: this.dayHanja },
-        hour: { korean: this.hourString, hanja: this.hourHanja },
-      };
-    },
-
-    toHanjaString: function (): string {
-      return `${this.yearHanja}年柱, ${this.monthHanja}月柱, ${this.dayHanja}日柱, ${this.hourHanja}時柱`;
+    toHanjaString(): string {
+      return `${hanjaOf(pillars.year)}年柱, ${hanjaOf(pillars.month)}月柱, ${hanjaOf(pillars.day)}日柱, ${hanjaOf(pillars.hour)}時柱`;
     },
   };
 }
@@ -581,75 +344,18 @@ export function calculateFourPillars(birthInfo: BirthInfo): FourPillarsDetail {
 /**
  * 사주를 한국어 문자열로 변환합니다.
  *
- * @param fourPillars 사주팔자
  * @returns "임신연주, 경술월주, 계유일주, 을묘시주" 형식의 문자열
  */
 export function fourPillarsToString(fourPillars: FourPillars): string {
   const { year, month, day, hour } = fourPillars;
+  assertPillar(year, 'year');
+  assertPillar(month, 'month');
+  assertPillar(day, 'day');
+  assertPillar(hour, 'hour');
   return [
     `${year.heavenlyStem}${year.earthlyBranch}연주`,
     `${month.heavenlyStem}${month.earthlyBranch}월주`,
     `${day.heavenlyStem}${day.earthlyBranch}일주`,
     `${hour.heavenlyStem}${hour.earthlyBranch}시주`,
   ].join(', ');
-}
-
-// ===== 음양오행 관련 함수 =====
-
-/**
- * 천간의 음양을 반환합니다.
- */
-export function getHeavenlyStemYinYang(stem: HeavenlyStem): YinYang {
-  const index = HEAVENLY_STEMS.indexOf(stem);
-  return index % 2 === 0 ? '양' : '음';
-}
-
-/**
- * 천간의 오행을 반환합니다.
- */
-export function getHeavenlyStemElement(stem: HeavenlyStem): FiveElement {
-  // noinspection NonAsciiCharacters
-  const STEM_ELEMENTS: Record<HeavenlyStem, FiveElement> = {
-    갑: '목',
-    을: '목',
-    병: '화',
-    정: '화',
-    무: '토',
-    기: '토',
-    경: '금',
-    신: '금',
-    임: '수',
-    계: '수',
-  };
-  return STEM_ELEMENTS[stem];
-}
-
-/**
- * 지지의 오행을 반환합니다.
- */
-export function getEarthlyBranchElement(branch: EarthlyBranch): FiveElement {
-  // noinspection NonAsciiCharacters
-  const BRANCH_ELEMENTS: Record<EarthlyBranch, FiveElement> = {
-    자: '수',
-    해: '수',
-    인: '목',
-    묘: '목',
-    사: '화',
-    오: '화',
-    진: '토',
-    술: '토',
-    축: '토',
-    미: '토',
-    신: '금',
-    유: '금',
-  };
-  return BRANCH_ELEMENTS[branch];
-}
-
-/**
- * 지지의 음양을 반환합니다.
- */
-export function getEarthlyBranchYinYang(branch: EarthlyBranch): YinYang {
-  const index = EARTHLY_BRANCHES.indexOf(branch);
-  return index % 2 === 0 ? '양' : '음';
 }
