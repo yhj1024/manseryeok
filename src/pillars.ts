@@ -7,7 +7,7 @@
  * - 시주: 일간(日干) 기준 시간 천간 + 지방 진태양시 기준 시진.
  */
 
-import type { DayBoundary, EarthlyBranch, HeavenlyStem, Pillar } from './types';
+import type { DayBoundary, Pillar } from './types';
 import { EARTHLY_BRANCHES, HEAVENLY_STEMS, MONTH_BRANCHES, DAY_PILLAR_ANCHOR } from './constants';
 import { pillarFromGanji } from './ganji';
 import { sajuMonthForInstant, sajuYearForInstant } from './astro/solar-terms';
@@ -20,7 +20,7 @@ function mod(n: number, m: number): number {
 }
 
 /** 사주 연도 → 연주 */
-export function getYearPillar(sajuYear: number): Pillar {
+function getYearPillar(sajuYear: number): Pillar {
   return {
     heavenlyStem: HEAVENLY_STEMS[mod(sajuYear - 4, 10)],
     earthlyBranch: EARTHLY_BRANCHES[mod(sajuYear - 4, 12)],
@@ -28,7 +28,7 @@ export function getYearPillar(sajuYear: number): Pillar {
 }
 
 /** 사주 연도 + 절기 월 번호(1=인월…12=축월) → 월주 */
-export function getMonthPillar(sajuYear: number, monthNumber: number): Pillar {
+function getMonthPillar(sajuYear: number, monthNumber: number): Pillar {
   const yearStem = mod(sajuYear - 4, 10);
   const yearStemMod5 = yearStem % 5;
   // 오호둔(五虎遁): 인월(1)부터 월간 전개
@@ -88,7 +88,7 @@ function shichenForApparent(apparentMs: number): number {
 }
 
 /** 일간 인덱스 + 시진 → 시주 */
-export function getHourPillar(dayStemIndex: number, shichen: number): Pillar {
+function getHourPillar(dayStemIndex: number, shichen: number): Pillar {
   const hourStemBase = (dayStemIndex % 5) * 2;
   const hourStemIndex = (hourStemBase + shichen) % 10;
   return {
@@ -126,5 +126,3 @@ export function computeFourPillars(
 
   return { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
 }
-
-export type { HeavenlyStem, EarthlyBranch };

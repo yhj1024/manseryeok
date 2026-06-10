@@ -221,7 +221,7 @@ interface LuckPillar {
 - `fourPillarsToString(fourPillars): string`
 - `solarToLunar(year, month, day): LunarDate` / `lunarToSolar(year, month, day, isLeapMonth): SolarDate`
 - `getSolarTerm(year, index): SolarTerm` / `getSolarTermsOfYear(year): SolarTerm[]`
-- `getTenGod(dayMaster, target): TenGod` / `getTenGodChart(pillars): TenGodChart`
+- `getTenGod(dayMaster, target): TenGod` / `getBranchTenGod(dayMaster, branch): TenGod` / `getTenGodChart(pillars): TenGodChart`
 - `getVoidBranches(dayStem, dayBranch): EarthlyBranch[]`
 - `getLuckPillars(params): LuckPillarInfo`
 - `getHeavenlyStemYinYang` / `getHeavenlyStemElement` / `getEarthlyBranchYinYang` / `getEarthlyBranchElement`

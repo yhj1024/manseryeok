@@ -74,10 +74,10 @@ export const SOLAR_TERM_NAMES_HANJA = [
 ] as const;
 
 /** 입춘 절기 인덱스 */
-export const LICHUN_INDEX = 2;
+const LICHUN_INDEX = 2;
 
 /** 절기 인덱스 → 목표 황경(deg) */
-export function solarTermLongitude(index: number): number {
+function solarTermLongitude(index: number): number {
   assertIntegerInRange(index, 0, 23, '절기 인덱스(index)');
   return (285 + 15 * index) % 360;
 }
@@ -118,7 +118,7 @@ export function getSolarTerm(year: number, index: number): SolarTerm {
 }
 
 /**
- * 한 해의 24절기를 모두 반환한다 (KST 기준, 시간 순서).
+ * 한 해의 24절기를 모두 반환한다 (시간 순서).
  */
 export function getSolarTermsOfYear(year: number): SolarTerm[] {
   return Array.from({ length: 24 }, (_, i) => getSolarTerm(year, i));

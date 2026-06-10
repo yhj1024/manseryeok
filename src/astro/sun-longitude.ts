@@ -11,13 +11,8 @@ const DEG2RAD = Math.PI / 180;
 const RAD2DEG = 180 / Math.PI;
 
 /** Unix epoch milliseconds(UTC) → Julian Day */
-export function julianDayFromMs(ms: number): number {
+function julianDayFromMs(ms: number): number {
   return ms / 86400000 + 2440587.5;
-}
-
-/** Julian Day → Unix epoch milliseconds(UTC) */
-export function msFromJulianDay(jd: number): number {
-  return (jd - 2440587.5) * 86400000;
 }
 
 /** 0~360 범위로 정규화 */

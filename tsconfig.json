@@ -11,6 +11,9 @@
     "forceConsistentCasingInFileNames": true,  // 파일명 대소문자 일관성 강제
     "declaration": true,             // .d.ts 타입 정의 파일 생성
     "declarationMap": false,         // src를 배포하지 않으므로(.d.ts.map이 가리킬 원본 없음) 비활성화
+    "noUnusedLocals": true,          // 미사용 지역 변수/import 금지
+    "noUnusedParameters": true,      // 미사용 매개변수 금지
+    "noImplicitReturns": true,       // 일부 경로만 return 하는 함수 금지
     "moduleResolution": "node"       // Node.js 스타일 모듈 해석
   },
   "include": ["src/**/*.ts"],            // 컴파일할 파일 경로

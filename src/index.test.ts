@@ -18,8 +18,6 @@ import {
   EARTHLY_BRANCHES,
   type BirthInfo,
 } from './index';
-import { julianDayFromMs, msFromJulianDay } from './astro/sun-longitude';
-
 const pillars = (b: BirthInfo): string[] => {
   const r = calculateFourPillars(b);
   return [r.yearString, r.monthString, r.dayString, r.hourString];
@@ -587,12 +585,6 @@ describe('미커버 경로 검증 (역행 대운·공개 유틸·예외 분기)'
     for (let i = 1; i < terms.length; i++) {
       expect(terms[i].date.getTime()).toBeGreaterThan(terms[i - 1].date.getTime());
     }
-  });
-
-  test('julianDay ↔ ms 왕복 항등성', () => {
-    const ms = Date.UTC(2024, 0, 1, 12, 0, 0);
-    expect(msFromJulianDay(julianDayFromMs(ms))).toBeCloseTo(ms, 3);
-    expect(julianDayFromMs(Date.UTC(2000, 0, 1, 12))).toBeCloseTo(2451545.0, 6); // J2000.0
   });
 
   test('음력 입력 월/일 범위 예외', () => {
