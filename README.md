@@ -4,6 +4,8 @@
 [![CI](https://github.com/yhj1024/manseryeok/actions/workflows/ci.yml/badge.svg)](https://github.com/yhj1024/manseryeok/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/manseryeok)](./LICENSE)
 
+**한국어** | [English](./README.en.md)
+
 **한국천문연구원(KASI) 정본 데이터 기반 만세력·사주팔자 계산 TypeScript 라이브러리.**
 
 양력/음력 생년월일시를 입력하면 사주팔자(연주·월주·일주·시주)와 십신·대운·공망을
