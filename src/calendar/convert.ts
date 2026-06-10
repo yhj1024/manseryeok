@@ -99,8 +99,11 @@ export function solarToLunar(year: number, month: number, day: number): LunarDat
   let offset = Math.floor((targetUTC - LUNAR_BASE_UTC_MS) / MS_PER_DAY);
 
   if (offset < 0) {
+    // 지원 하한은 음력 테이블 기준일(LUNAR_BASE_UTC_MS)에서 유도한다
+    const base = new Date(LUNAR_BASE_UTC_MS);
+    const baseStr = `${base.getUTCFullYear()}-${String(base.getUTCMonth() + 1).padStart(2, '0')}-${String(base.getUTCDate()).padStart(2, '0')}`;
     throw new RangeError(
-      `음력 변환 지원 범위(양력 ${LUNAR_MIN_YEAR}-01-31) 이전 날짜입니다: ${year}-${month}-${day}`,
+      `음력 변환 지원 범위(양력 ${baseStr}) 이전 날짜입니다: ${year}-${month}-${day}`,
     );
   }
 

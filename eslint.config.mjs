@@ -4,7 +4,21 @@ import typescriptParser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
+  { ignores: ['dist/', 'coverage/', 'node_modules/'] },
   js.configs.recommended,
+  {
+    // Node 스크립트 (tools/, 설정 파일)
+    files: ['**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        setTimeout: 'readonly',
+      },
+    },
+  },
   {
     files: ['**/*.ts'],
     languageOptions: {

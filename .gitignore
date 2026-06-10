@@ -7,8 +7,3 @@ coverage/
 .vscode/
 tools/.kasi-cache.json
 tools/.kasi-build.log
-
-# 내부 작업 히스토리 (추후 삭제 예정)
-/HANDOFF.md
-/HANDOFF-2.md
-/codex_1.md

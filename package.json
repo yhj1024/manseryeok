@@ -44,7 +44,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint src",
+    "lint": "eslint .",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepublishOnly": "pnpm lint && pnpm test:run && pnpm build"
   },

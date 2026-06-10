@@ -7,7 +7,7 @@
  * 동작:
  *  1) getSolCalInfo 로 음력 각 연/월 1일의 solJd·월일수(평달)를 받아 캐시(.kasi-cache.json)에 저장(재개 가능).
  *  2) 갭(다음 달 1일 solJd - 이번 달 1일 solJd)으로 윤달 위치·일수를 역산.
- *  3) 16비트 패킹(LUNAR_DATA) 으로 인코딩하고, 연 총일수 정합성·기존 테이블(1900~2049) 대조 검증.
+ *  3) 16비트 패킹(LUNAR_DATA) 으로 인코딩하고, 연 총일수 정합성·기존 테이블 대조 검증.
  *  4) 2050~2100 은 기존(6tail) 값을 유지해 이어 붙이고 src/calendar/lunar-data.ts 생성.
  */
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -177,18 +177,24 @@ for (let y = MIN_YEAR; y <= KASI_MAX_YEAR; y++) {
 }
 console.log(`인코딩+정합성 검증 통과: ${MIN_YEAR}~${KASI_MAX_YEAR} (${kasiValues.length}년)`);
 
-// ---- 3) 기존 테이블(1900~2049) 대조 + 2050~2100 이어붙이기 ----
+// ---- 3) 기존 테이블 대조 + 2050~2100 이어붙이기 ----
 const src = readFileSync(new URL('../src/calendar/lunar-data.ts', import.meta.url), 'utf8');
 const cur = src.match(/const LUNAR_DATA = \[([\s\S]*?)\];/)[1]
   .split(',').map((s) => s.trim()).filter(Boolean).map((s) => parseInt(s, 16));
-const CUR_MIN = 1900;
+// 기존 테이블의 시작 연도는 파일이 선언한 LUNAR_MIN_YEAR 를 그대로 사용한다 (하드코딩 금지)
+const CUR_MIN = Number(src.match(/export const LUNAR_MIN_YEAR = (\d+)/)[1]);
+if (cur.length < KEEP_MAX_YEAR - CUR_MIN + 1) {
+  throw new Error(
+    `기존 LUNAR_DATA 범위 부족: ${CUR_MIN}~${CUR_MIN + cur.length - 1} (${KEEP_MAX_YEAR}년까지 필요)`,
+  );
+}
 let diffs = [];
-for (let y = 1900; y <= KASI_MAX_YEAR; y++) {
+for (let y = Math.max(MIN_YEAR, CUR_MIN); y <= KASI_MAX_YEAR; y++) {
   const k = kasiValues[y - MIN_YEAR];
   const c = cur[y - CUR_MIN];
-  if (k !== c) diffs.push(`${y}: KASI 0x${k.toString(16)} vs 기존(6tail) 0x${c.toString(16)}`);
+  if (k !== c) diffs.push(`${y}: KASI 0x${k.toString(16)} vs 기존 0x${c.toString(16)}`);
 }
-console.log(`\n기존(6tail) 대비 KASI 차이: ${diffs.length}건 (한·중 차이 또는 기존 오류)`);
+console.log(`\n기존 테이블 대비 KASI 차이: ${diffs.length}건 (재생성이면 0건이 정상)`);
 diffs.forEach((d) => console.log('  ' + d));
 
 const tail = []; // 2050~2100 기존 유지
