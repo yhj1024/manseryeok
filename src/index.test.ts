@@ -661,3 +661,61 @@ describe('상수/유틸 함수', () => {
     expect(fourPillarsToString(r)).toBe('임신연주, 경술월주, 계유일주, 을묘시주');
   });
 });
+
+describe('절입 경계 자기일관성 (±1분)', () => {
+  /** UTC 절대 순간 → KST 벽시계 입력 */
+  const kstInput = (ms: number): BirthInfo => {
+    const d = new Date(ms + 9 * 3600 * 1000);
+    return {
+      year: d.getUTCFullYear(),
+      month: d.getUTCMonth() + 1,
+      day: d.getUTCDate(),
+      hour: d.getUTCHours(),
+      minute: d.getUTCMinutes(),
+    };
+  };
+
+  test('입춘 직전/직후 분에서 연주가 정확히 한 해 바뀐다 (표본 연도)', () => {
+    for (const y of [1800, 1900, 1954, 1988, 2024, 2100, 2200, 2300]) {
+      const lichunMs = getSolarTerm(y, 2).date.getTime();
+      const before = calculateFourPillars(kstInput(lichunMs - 60000)).yearString;
+      const after = calculateFourPillars(kstInput(lichunMs)).yearString;
+      const expectedAfter = HEAVENLY_STEMS[(((y - 4) % 10) + 10) % 10] + EARTHLY_BRANCHES[(((y - 4) % 12) + 12) % 12];
+      const expectedBefore =
+        HEAVENLY_STEMS[(((y - 5) % 10) + 10) % 10] + EARTHLY_BRANCHES[(((y - 5) % 12) + 12) % 12];
+      expect(after, `${y} 입춘 직후`).toBe(expectedAfter);
+      expect(before, `${y} 입춘 직전`).toBe(expectedBefore);
+    }
+  });
+
+  test('모든 절(節) 직전/직후 분에서 월주가 바뀐다 (표본 연도 × 12절)', () => {
+    for (const y of [1850, 1962, 2024, 2250]) {
+      for (const idx of [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]) {
+        const ms = getSolarTerm(y, idx).date.getTime();
+        const before = calculateFourPillars(kstInput(ms - 60000)).monthString;
+        const after = calculateFourPillars(kstInput(ms)).monthString;
+        expect(after, `${y}년 절기 ${idx} 경계`).not.toBe(before);
+      }
+    }
+  });
+});
+
+describe('음양력 왕복 전수 스윕', () => {
+  test('양력 1391~2100 전 구간 13일 간격 왕복 항등성', () => {
+    const DAY = 86400000;
+    const start = Date.UTC(1391, 1, 13); // 음력 테이블 기준일
+    const end = Date.UTC(2100, 11, 31);
+    let count = 0;
+    for (let ms = start; ms <= end; ms += 13 * DAY) {
+      const d = new Date(ms);
+      const y = d.getUTCFullYear();
+      const m = d.getUTCMonth() + 1;
+      const day = d.getUTCDate();
+      const lunar = solarToLunar(y, m, day);
+      const back = lunarToSolar(lunar.year, lunar.month, lunar.day, lunar.isLeapMonth);
+      expect(back, `${y}-${m}-${day}`).toEqual({ year: y, month: m, day });
+      count++;
+    }
+    expect(count).toBeGreaterThan(19000);
+  });
+});

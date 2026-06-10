@@ -1,5 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { calculateFourPillars, HEAVENLY_STEMS, EARTHLY_BRANCHES } from './index';
+import { solarTermInstantMs } from './astro/solar-terms';
+import {
+  SOLAR_TERM_DATA_MAX_YEAR,
+  SOLAR_TERM_DATA_MIN_YEAR,
+} from './astro/solar-terms-data';
 // @ts-expect-error - lunar-javascript 는 타입 정의를 제공하지 않는다 (devDependency, 교차검증 전용)
 import { Solar } from 'lunar-javascript';
 
@@ -66,5 +71,48 @@ describe('6tail 교차검증 (핵심 60갑자)', () => {
     expect(matchRate).toBeGreaterThanOrEqual(0.98);
     // 일주/시주가 어긋나는 경우는 없어야 한다 (절입 경계는 연주/월주만 영향)
     expect(nonBoundaryMismatch).toEqual([]);
+  });
+});
+
+describe('절입 시각 전수 스윕 (1800~2300 × 24절기)', () => {
+  test('전 절기 절입 분(分)이 6tail 천문 계산과 1분 이내 일치', () => {
+    const BEIJING_OFFSET_MS = 8 * 3600 * 1000;
+    let maxAbsDiff = 0;
+    let worst = '';
+
+    for (let y = SOLAR_TERM_DATA_MIN_YEAR; y <= SOLAR_TERM_DATA_MAX_YEAR; y++) {
+      // 해당 양력 연도에 속하는 24개 절기 (6tail 은 CST 벽시계 → UTC 환산)
+      const table = Solar.fromYmd(y, 1, 1).getLunar().getJieQiTable();
+      const theirsMinutes = (Object.values(table) as Array<{
+        getYear(): number;
+        getMonth(): number;
+        getDay(): number;
+        getHour(): number;
+        getMinute(): number;
+        getSecond(): number;
+      }>)
+        .filter((s) => s.getYear() === y)
+        .map((s) =>
+          Math.round(
+            (Date.UTC(s.getYear(), s.getMonth() - 1, s.getDay(), s.getHour(), s.getMinute(), s.getSecond()) -
+              BEIJING_OFFSET_MS) /
+              60000,
+          ),
+        )
+        .sort((a, b) => a - b);
+      expect(theirsMinutes).toHaveLength(24);
+
+      for (let i = 0; i < 24; i++) {
+        const oursMin = solarTermInstantMs(y, i) / 60000;
+        const diff = Math.abs(oursMin - theirsMinutes[i]);
+        if (diff > maxAbsDiff) {
+          maxAbsDiff = diff;
+          worst = `${y}년 절기 ${i}`;
+        }
+      }
+    }
+
+    // 절입표는 6tail 값으로 생성되었으므로 사실상 0분, 반올림 여유로 1분까지 허용
+    expect(maxAbsDiff, `최대 오차 위치: ${worst}`).toBeLessThanOrEqual(1);
   });
 });
