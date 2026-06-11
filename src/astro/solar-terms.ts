@@ -12,6 +12,8 @@ import { solarTermCorrectionMinutes } from './solar-terms-data';
 
 const SOLAR_TERM_MIN_YEAR = 100;
 const SOLAR_TERM_MAX_YEAR = 9999;
+const MS_PER_MINUTE = 60000;
+const SOLAR_TERM_CACHE = new Map<number, number>();
 
 function assertSolarTermYear(year: number): void {
   assertIntegerInRange(year, SOLAR_TERM_MIN_YEAR, SOLAR_TERM_MAX_YEAR, '절기 연도(year)');
@@ -90,13 +92,19 @@ function solarTermLongitude(index: number): number {
 export function solarTermInstantMs(year: number, index: number): number {
   assertSolarTermYear(year);
   const target = solarTermLongitude(index); // 인덱스 범위(0~23) 검증 포함
+  const cacheKey = year * 24 + index;
+  const cached = SOLAR_TERM_CACHE.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   // 절기가 속한 양력 월 (0-indexed): index 0(소한)→1월, index 2(입춘)→2월 …
   const month = Math.floor(index / 2);
   // 해당 월 중순을 초기 추정치로 Meeus 근사를 구한 뒤, 보정표(1800~2300)로 분 단위 오차를
   // 보정한다(범위 밖이면 보정 0 = Meeus 근사, 오차 ≈ 수 분).
   const guessMs = Date.UTC(year, month, 15, 0, 0, 0);
-  const meeusMin = Math.round(solveSolarLongitudeInstant(target, guessMs) / 60000);
-  return (meeusMin + solarTermCorrectionMinutes(year, index)) * 60000;
+  const meeusMin = Math.round(solveSolarLongitudeInstant(target, guessMs) / MS_PER_MINUTE);
+  const instantMs = (meeusMin + solarTermCorrectionMinutes(year, index)) * MS_PER_MINUTE;
+  SOLAR_TERM_CACHE.set(cacheKey, instantMs);
+  return instantMs;
 }
 
 /**

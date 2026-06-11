@@ -1,4 +1,7 @@
 /**
+ * 자동 생성 파일 — 직접 수정하지 마세요.
+ * 생성기: tools/build-lunar-kasi.mjs
+ *
  * 음력 데이터 테이블 및 기본 조회 함수.
  * 1391~2049년: 한국천문연구원(KASI) 음양력 API 기준.
  * 2050~2100년: 천문 계산(6tail) 기준(KASI 미제공 구간).
@@ -96,8 +99,10 @@ export function getLeapMonth(year: number): number {
 
 /** 음력 연도의 윤달 일수 (윤달 없으면 0) */
 export function getLeapMonthDays(year: number): number {
-  if (getLeapMonth(year) === 0) return 0;
-  return LUNAR_DATA[year - LUNAR_MIN_YEAR] & 0x10000 ? 30 : 29;
+  assertYear(year);
+  const data = LUNAR_DATA[year - LUNAR_MIN_YEAR];
+  if ((data & 0xf) === 0) return 0;
+  return data & 0x10000 ? 30 : 29;
 }
 
 /** 음력 특정 월(평달)의 일수 */

@@ -1,4 +1,7 @@
 /**
+ * 자동 생성 파일 — 직접 수정하지 마세요.
+ * 생성기: tools/gen-solar-terms.mjs
+ *
  * 24절기 절입 보정표 (1800~2300).
  *
  * 출처: 6tail/lunar-javascript 의 천문 계산값을 개발 시점에 추출(tools/gen-solar-terms.mjs).

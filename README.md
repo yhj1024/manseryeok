@@ -43,7 +43,7 @@ const result = calculateFourPillars({
   minute: 30,      // 분 (0-59)
 });
 
-result.toString();      // '임신년주, 경술월주, 계유일주, 을묘시주'
+result.toString();      // '임신연주, 경술월주, 계유일주, 을묘시주'
 result.toObject();      // { year: '임신', month: '경술', day: '계유', hour: '을묘' }
 result.toHanjaString(); // '壬申年柱, 庚戌月柱, 癸酉日柱, 乙卯時柱'
 

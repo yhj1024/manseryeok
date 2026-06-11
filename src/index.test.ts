@@ -620,7 +620,7 @@ describe('미커버 경로 검증 (역행 대운·공개 유틸·예외 분기)'
 
   test('결과 변환 메서드 (toString·toObject·toHanjaObject·toHanjaString)', () => {
     const r = calculateFourPillars({ year: 1992, month: 10, day: 24, hour: 5, minute: 30 });
-    expect(r.toString()).toBe('임신년주, 경술월주, 계유일주, 을묘시주');
+    expect(r.toString()).toBe('임신연주, 경술월주, 계유일주, 을묘시주');
     expect(r.toObject()).toEqual({ year: '임신', month: '경술', day: '계유', hour: '을묘' });
     expect(r.toHanjaObject()).toEqual({
       year: { korean: '임신', hanja: '壬申' },

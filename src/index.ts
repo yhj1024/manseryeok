@@ -293,6 +293,10 @@ export function calculateFourPillars(birthInfo: BirthInfo): FourPillarsDetail {
   const monthString = `${pillars.month.heavenlyStem}${pillars.month.earthlyBranch}`;
   const dayString = `${pillars.day.heavenlyStem}${pillars.day.earthlyBranch}`;
   const hourString = `${pillars.hour.heavenlyStem}${pillars.hour.earthlyBranch}`;
+  const yearHanja = hanjaOf(pillars.year);
+  const monthHanja = hanjaOf(pillars.month);
+  const dayHanja = hanjaOf(pillars.day);
+  const hourHanja = hanjaOf(pillars.hour);
 
   return {
     ...fourPillars,
@@ -312,31 +316,31 @@ export function calculateFourPillars(birthInfo: BirthInfo): FourPillarsDetail {
     dayString,
     hourString,
 
-    yearHanja: hanjaOf(pillars.year),
-    monthHanja: hanjaOf(pillars.month),
-    dayHanja: hanjaOf(pillars.day),
-    hourHanja: hanjaOf(pillars.hour),
+    yearHanja,
+    monthHanja,
+    dayHanja,
+    hourHanja,
 
     tenGods,
     voidBranches,
     luckPillars,
 
     toString(): string {
-      return `${yearString}년주, ${monthString}월주, ${dayString}일주, ${hourString}시주`;
+      return fourPillarsToString(fourPillars);
     },
     toObject() {
       return { year: yearString, month: monthString, day: dayString, hour: hourString };
     },
     toHanjaObject() {
       return {
-        year: { korean: yearString, hanja: hanjaOf(pillars.year) },
-        month: { korean: monthString, hanja: hanjaOf(pillars.month) },
-        day: { korean: dayString, hanja: hanjaOf(pillars.day) },
-        hour: { korean: hourString, hanja: hanjaOf(pillars.hour) },
+        year: { korean: yearString, hanja: yearHanja },
+        month: { korean: monthString, hanja: monthHanja },
+        day: { korean: dayString, hanja: dayHanja },
+        hour: { korean: hourString, hanja: hourHanja },
       };
     },
     toHanjaString(): string {
-      return `${hanjaOf(pillars.year)}年柱, ${hanjaOf(pillars.month)}月柱, ${hanjaOf(pillars.day)}日柱, ${hanjaOf(pillars.hour)}時柱`;
+      return `${yearHanja}年柱, ${monthHanja}月柱, ${dayHanja}日柱, ${hourHanja}時柱`;
     },
   };
 }
